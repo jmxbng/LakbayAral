@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dark_bg">#FF0B0F1A</color>
+    <color name="gold">#FFC8A24A</color>
+    <color name="neon_blue">#FF4DE3FF</color>
+    <color name="white_glow">#FFEAEAEA</color>
+    <color name="error_red">#FFFF4C4C</color>
+    <color name="success_green">#FF4CFFA0</color>
+</resources>
