@@ -133,7 +133,8 @@ fun QuizScreen(
                 is QuizPhase.Question -> QuizQuestionView(
                     state = currentPhase,
                     onSelect = viewModel::selectAnswer,
-                    onNext = viewModel::nextQuestion
+                    onNext = viewModel::nextQuestion,
+                    onExit = onBack
                 )
                 is QuizPhase.Result   -> QuizResultView(currentPhase.result, onRetry = viewModel::retry, onFinish = onFinished)
             }
@@ -191,7 +192,12 @@ fun QuizRule(emoji: String, text: String) {
 
 // ── Question ──────────────────────────────────────────────────────────────────
 @Composable
-fun QuizQuestionView(state: QuizPhase.Question, onSelect: (Int) -> Unit, onNext: () -> Unit) {
+fun QuizQuestionView(
+    state: QuizPhase.Question,
+    onSelect: (Int) -> Unit,
+    onNext: () -> Unit,
+    onExit: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -201,7 +207,18 @@ fun QuizQuestionView(state: QuizPhase.Question, onSelect: (Int) -> Unit, onNext:
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Question ${state.index + 1}", color = WhiteGlow.copy(0.4f), fontSize = 12.sp)
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = onExit) {
+                Text("Exit Quiz", color = ErrorRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
 
         // Progress bar
         LinearProgressIndicator(
@@ -210,8 +227,6 @@ fun QuizQuestionView(state: QuizPhase.Question, onSelect: (Int) -> Unit, onNext:
             color    = Gold,
             trackColor = WhiteGlow.copy(0.1f)
         )
-        Spacer(Modifier.height(4.dp))
-        Text("Question ${state.index + 1}", color = WhiteGlow.copy(0.4f), fontSize = 12.sp)
 
         Spacer(Modifier.height(24.dp))
 
