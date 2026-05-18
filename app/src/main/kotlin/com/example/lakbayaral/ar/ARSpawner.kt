@@ -54,7 +54,7 @@ class ARSpawner(
             name = "content:${historicalObject.id}"
             bindTap(historicalObject)
         }
-        contentRoot.addChildNode(createPlacementPedestal(historicalObject))
+        /*contentRoot.addChildNode(createPlacementPedestal(historicalObject))*/
         anchorNode.addChildNode(contentRoot)
 
         sceneView.addChildNode(anchorNode)
@@ -181,7 +181,7 @@ class ARSpawner(
     ): ModelNode {
         return ModelNode(
             modelInstance = modelInstance,
-            autoAnimate = true,
+            autoAnimate = false,
             scaleToUnits = if (historicalObject.type == ObjectType.PLACE) {
                 PLACE_MODEL_HEIGHT_METERS
             } else {

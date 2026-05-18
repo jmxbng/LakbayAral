@@ -11,87 +11,62 @@ object LocalDataSource {
     // ── Lubao Historical Places ────────────────────────────────────────────────
     private val lubaoPlaces = listOf(
         HistoricalObject(
-            id           = "san_pedro_lubao",
-            name         = "St. Peter the Apostle Parish Church",
+            id           = "san_agustin_lubao",
+            name         = "San Agustin Lubao Church",
             type         = ObjectType.PLACE,
-            description  = "One of the oldest churches in Pampanga, the St. Peter the Apostle Parish " +
-                    "Church in Lubao dates back to the Spanish colonial period, originally built " +
-                    "in 1572. The church is a fine example of Baroque architecture and has " +
-                    "survived several earthquakes and the eruption of Mt. Pinatubo in 1991.",
-            significance = "The church served as the center of spiritual and civic life for the " +
-                    "people of Lubao for over 400 years. It witnessed key events in Philippine " +
-                    "history including the resistance against colonial rule.",
+            description  = "Founded in 1572 as one of the earliest Augustinian mission churches in Central Luzon. The first church structure was built near the riverbanks of Gato using wood, bamboo, and nipa materials. During the British occupation of Manila in 1762, theology students from Manila were transferred to the Lubao convent. The church later became an emergency station for revolutionary forces in 1898, a hospital during the American occupation in 1899, and suffered damage during Japanese attacks in 1942. It also served as an evacuation shelter after the 1991 Mt. Pinatubo eruption.",
+            significance = "The church symbolizes Lubao’s importance as one of the earliest Christian and missionary centers in Pampanga. It played major religious, political, and historical roles throughout Spanish, American, Japanese, and modern Philippine history.",
             yearBuilt    = "1572",
-            modelAsset   = "models/church.glb"
+            modelAsset   = "models/LubaoChurch.glb"
         ),
         HistoricalObject(
-            id           = "lubao_bridge",
-            name         = "Old Lubao Bridge",
+            id           = "bamboo_park",
+            name         = "Lubao Bamboo Hub / Bamboo Park",
             type         = ObjectType.PLACE,
-            description  = "The Old Lubao Bridge spanning the Lubao River was a critical " +
-                    "infrastructure during the American colonial period. It enabled commerce " +
-                    "and communication between Lubao and surrounding municipalities.",
-            significance = "The bridge symbolizes the modernization era of Lubao under American " +
-                    "administration and remains a heritage structure recognized by the National " +
-                    "Historical Commission of the Philippines.",
-            yearBuilt    = "1910",
-            modelAsset   = "models/bridge.glb"
+            description  = "The Bamboo Park in Lubao is part of the municipality’s eco-tourism development under modern environmental and tourism initiatives. It showcases bamboo landscapes, eco-structures, and nature-based attractions that promote sustainability and local tourism in Pampanga.",
+            significance = "The park represents Lubao’s shift toward eco-tourism and environmental awareness. It highlights the use of bamboo as a sustainable resource and promotes nature conservation and tourism development in the municipality.",
+            yearBuilt    = "Modern development (2010s–present)",
+            modelAsset   = "models/BambooPark.glb"
         ),
         HistoricalObject(
-            id           = "lubao_plaza",
-            name         = "Lubao Town Plaza",
+            id           = "lubao_municipality",
+            name         = "Municipal Hall of Lubao",
             type         = ObjectType.PLACE,
-            description  = "The historic town plaza of Lubao has been the site of countless " +
-                    "civic events, proclamations, and celebrations since the Spanish era. " +
-                    "It features a monument to the town's founding and a traditional bandstand.",
-            significance = "The plaza represents the democratic and civic heart of Lubao, " +
-                    "where major historical announcements and community gatherings have taken " +
-                    "place for centuries.",
-            yearBuilt    = "c. 1600",
-            modelAsset   = "models/monument.glb"
+            description  = "The Municipal Hall of Lubao is the center of local government where official administrative and public service operations are conducted. It represents the development of Lubao’s political system from its historical roots during the Spanish period into a modern organized municipality. The building has served as the main seat of governance where local leaders implement policies and community programs for the town.",
+            significance = "The Municipal Hall symbolizes modern governance and civic leadership in Lubao. It is the place where decisions for public service, development projects, and municipal administration are made, reflecting the town’s progress and modernization.",
+            yearBuilt    = "Modern development (estimated 20th century–present)",
+            modelAsset   = "models/Municipality.glb"
         )
     )
 
     // ── Lubao Historical People ────────────────────────────────────────────────
     private val lubaopeople = listOf(
         HistoricalObject(
-            id           = "general_tinio",
-            name         = "General Manuel Tinio",
+            id           = "jose_b_lingad",
+            name         = "Jose B. Lingad",
             type         = ObjectType.PERSON,
-            description  = "General Manuel Tinio was one of the youngest generals of the " +
-                    "Philippine Revolution, born in Nueva Ecija but closely associated with " +
-                    "Pampanga. He commanded forces against Spanish colonial rule and later " +
-                    "against American occupation.",
-            significance = "Tinio represents the fierce resistance of Central Luzon patriots " +
-                    "against colonial oppression. His military campaigns in the region inspired " +
-                    "future generations of Filipino nationalists.",
-            yearBuilt    = "1876–1930",
-            modelAsset   = "models/bust_general.glb"
+            description  = "Jose B. Lingad was a Filipino politician and war veteran born in Lubao, Pampanga. He served as a representative of Pampanga and later became the Secretary of Labor. He was also known for his role in the Philippine resistance during World War II as part of the guerrilla movement against Japanese occupation.",
+            significance = "He represents Lubao’s contribution to national leadership and wartime resistance. His legacy is honored in Pampanga through public institutions named after him, including hospitals and schools.",
+            yearBuilt    = "1914 – 1980",
+            modelAsset   = "models/JosePLingad.glb"
         ),
         HistoricalObject(
-            id           = "don_macabulos",
-            name         = "Don Francisco Macabulos",
+            id           = "diosdado_p_macapagal",
+            name         = "Diosdado P. Macapagal",
             type         = ObjectType.PERSON,
-            description  = "Don Francisco Macabulos was a Kapampangan chieftain and revolutionary " +
-                    "leader who led the uprising against Spanish authorities in Pampanga during " +
-                    "the Philippine Revolution of 1896.",
-            significance = "Macabulos was instrumental in organizing Kapampangan resistance and " +
-                    "is considered one of the greatest heroes of Pampanga, representing the " +
-                    "fighting spirit of the region.",
-            yearBuilt    = "1861–1897",
-            modelAsset   = "models/bust_chief.glb"
+            description  = "Born in Lubao, Pampanga, Diosdado P. Macapagal rose from poverty and became the 9th President of the Philippines. He served as congressman, vice president, and president from 1961 to 1965. He promoted land reform, anti-corruption programs, and changed the celebration of Philippine Independence Day from July 4 to June 12.",
+            significance = "Macapagal became one of Lubao’s most recognized national figures and contributed greatly to Philippine politics, economic reform, and national identity.",
+            yearBuilt    = "1910–1997",
+            modelAsset   = "models/Diosdado(Male).glb"
         ),
         HistoricalObject(
-            id           = "diosdado_macapagal",
-            name         = "Diosdado Macapagal",
+            id           = "gloria_macapagal_arroyo",
+            name         = "Gloria Macapagal-Arroyo",
             type         = ObjectType.PERSON,
-            description  = "Diosdado Macapagal, born in Lubao, Pampanga, became the ninth " +
-                    "President of the Philippines. He is remembered for public service, " +
-                    "education reforms, and moving Philippine Independence Day to June 12.",
-            significance = "Macapagal connects Lubao's local story to national history, showing " +
-                    "how leaders from Pampanga helped shape the modern Philippine republic.",
-            yearBuilt    = "1910-1997",
-            modelAsset   = "models/bust_president.glb"
+            description  = "Gloria Macapagal-Arroyo, daughter of Diosdado Macapagal, became the 14th President of the Philippines. She served as senator, vice president, president, and representative of Pampanga’s 2nd district. Her administration supported infrastructure, education, healthcare, and heritage conservation projects in Lubao.",
+            significance = "Gloria Macapagal-Arroyo strengthened Lubao’s connection to national leadership and contributed to the municipality’s modernization and development projects.",
+            yearBuilt    = "1947–Present",
+            modelAsset   = "models/Diosdado(female).glb"
         )
     )
 
@@ -99,74 +74,74 @@ object LocalDataSource {
     private val lubaoQuiz = listOf(
         QuizQuestion(
             id           = "q1",
-            question     = "In what year was the St. Peter the Apostle Parish Church in Lubao originally established?",
-            choices      = listOf("1521", "1572", "1635", "1700"),
+            question     = "What year was the San Agustin Church in Lubao founded?",
+            choices      = listOf("1521", "1572", "1660", "1898"),
             correctIndex = 1,
-            explanation  = "The church was originally built in 1572, making it one of the oldest in Pampanga."
+            explanation  = "The San Agustin Church of Lubao was founded in 1572 and became one of the earliest Augustinian mission churches in Central Luzon."
         ),
         QuizQuestion(
             id           = "q2",
-            question     = "What major natural disaster affected the St. Peter the Apostle Parish Church in 1991?",
-            choices      = listOf("Earthquake", "Typhoon Yolanda", "Eruption of Mt. Pinatubo", "Flood"),
+            question     = "What natural disaster caused Lubao churches to become evacuation shelters in 1991?",
+            choices      = listOf("Earthquake", "Flood", "Eruption of Mt. Pinatubo", "Typhoon"),
             correctIndex = 2,
-            explanation  = "The 1991 eruption of Mt. Pinatubo deposited heavy lahar around the church area."
+            explanation  = "After the eruption of Mt. Pinatubo in 1991, many residents evacuated to churches and schools in Lubao for safety."
         ),
         QuizQuestion(
             id           = "q3",
-            question     = "What is the primary significance of the Old Lubao Bridge?",
+            question     = "What is the main function of the Municipal Hall of Lubao?",
             choices      = listOf(
-                "It was built during the Spanish era",
-                "It enabled commerce between Lubao and other municipalities",
-                "It was the site of a famous battle",
-                "It was built by Filipino laborers only"
+                "Religious worship center",
+                "Center of local government and public service",
+                "Ancient trading port",
+                "Military fortress"
             ),
             correctIndex = 1,
-            explanation  = "The bridge enabled commerce and communication during the American colonial period."
+            explanation  = "The Municipal Hall is the center of governance where local government services and administration are managed."
         ),
         QuizQuestion(
             id           = "q4",
-            question     = "General Manuel Tinio was known for being one of the youngest generals during:",
-            choices      = listOf("World War II", "The Philippine Revolution", "Korean War", "Spanish-American War"),
+            question     = "What best describes the early settlement of Lubao before Spanish colonization?",
+            choices      = listOf("Mountain fortress settlement", "River-based agricultural and trading community", "Industrial city center", "Foreign capital city"),
             correctIndex = 1,
-            explanation  = "Tinio commanded Philippine revolutionary forces against Spanish colonial rule."
+            explanation  = "Early Lubao was a river-based community where Kapampangans lived, farmed, and engaged in local trade."
         ),
         QuizQuestion(
             id           = "q5",
-            question     = "Don Francisco Macabulos led an uprising against which colonial power?",
-            choices      = listOf("American", "Spanish", "British", "Dutch"),
-            correctIndex = 1,
-            explanation  = "Macabulos led Kapampangan resistance against Spanish authorities in 1896."
+            question     = "Who was a Lubao-born public servant known for his role in government and World War II resistance?",
+            choices      = listOf("Diosdado Macapagal", "Manuel Roxas", "Jose B. Lingad", "Sergio Osmeña"),
+            correctIndex = 2,
+            explanation  = "Jose B. Lingad was a war veteran and public official from Lubao who served in government and participated in resistance efforts during World War II."
         ),
         QuizQuestion(
             id           = "q6",
-            question     = "What architectural style is the St. Peter the Apostle Parish Church?",
-            choices      = listOf("Gothic", "Baroque", "Renaissance", "Romanesque"),
+            question     = "Which Philippine president from Lubao changed Independence Day to June 12?",
+            choices      = listOf("Ferdinand Marcos", "Diosdado Macapagal", "Ramon Magsaysay", "Manuel Quezon"),
             correctIndex = 1,
-            explanation  = "The church is a fine example of Baroque architecture from the Spanish colonial era."
+            explanation  = "President Diosdado Macapagal officially moved the celebration of Philippine Independence Day from July 4 to June 12."
         ),
         QuizQuestion(
             id           = "q7",
-            question     = "Which government body recognizes the Old Lubao Bridge as a heritage structure?",
+            question     = "Who became the 14th President of the Philippines and was born in Lubao?",
             choices      = listOf(
-                "Department of Tourism",
-                "National Historical Commission of the Philippines",
-                "UNESCO",
-                "National Museum"
+                "Corazon Aquino",
+                "Gloria Macapagal-Arroyo",
+                "Miriam Defensor Santiago",
+                "Sara Duterte"
             ),
             correctIndex = 1,
-            explanation  = "The National Historical Commission of the Philippines (NHCP) officially recognizes it."
+            explanation  = "Gloria Macapagal-Arroyo, daughter of Diosdado Macapagal, became the 14th President of the Philippines."
         ),
         QuizQuestion(
             id           = "q8",
-            question     = "What does the Lubao Town Plaza primarily represent?",
+            question     = "What position did Diosdado Macapagal hold before becoming President?",
             choices      = listOf(
-                "Military power",
-                "Spanish dominance",
-                "Civic and democratic life",
-                "Economic prosperity"
+                "Senator",
+                "Chief Justice",
+                "Vice President",
+                "Governor"
             ),
             correctIndex = 2,
-            explanation  = "The plaza represents the civic heart of Lubao, hosting community gatherings for centuries."
+            explanation  = "Before serving as President from 1961 to 1965, Diosdado Macapagal first served as Vice President of the Philippines."
         )
     )
 
@@ -176,9 +151,7 @@ object LocalDataSource {
             id               = "lubao",
             name             = "Lubao",
             province         = "Pampanga",
-            description      = "Lubao is a first-class municipality in Pampanga known for its rich " +
-                    "history, heritage churches, and its famous traditional delicacy, the Tibuk-tibuk. " +
-                    "It was one of the earliest settlements in Central Luzon during the Spanish era.",
+            description      = "Lubao is a first-class municipality in Pampanga known for its rich history, heritage churches, ancient trading settlements, and famous delicacy called Tibuk-tibuk. It is considered one of the earliest and most historic settlements in Central Luzon.",
             imageRes         = "lubao_hero",
             isUnlocked       = true,
             historicalPlaces = lubaoPlaces,
