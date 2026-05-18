@@ -10,12 +10,10 @@ import com.google.ar.core.TrackingState
  *
  * The ARModeScreen creates one ARInteractionManager and passes callbacks:
  *  - onPlacementTap: called when user taps on a detected plane (spawn next object)
- *  - onObjectTap: called when user taps a previously-spawned model (show panel)
  */
 class ARInteractionManager(
     private val objectList       : List<HistoricalObject>,
-    private val onObjectTap      : (HistoricalObject) -> Unit,
-    private val onPlacementTap   : (HistoricalObject, HitResult) -> Unit,
+    private val onPlacementTap   : (HistoricalObject, HitResult) -> Boolean,
     private val onOutOfObjects   : () -> Unit
 ) {
     private var currentIndex = 0
@@ -43,7 +41,9 @@ class ARInteractionManager(
             onOutOfObjects()
             return
         }
-        onPlacementTap(obj, hitResult)
+        val placed = onPlacementTap(obj, hitResult)
+        if (!placed) return
+
         currentIndex++
         if (currentIndex >= objectList.size) onOutOfObjects()
     }

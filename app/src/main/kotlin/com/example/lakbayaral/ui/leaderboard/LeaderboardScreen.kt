@@ -23,7 +23,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lakbayaral.data.models.Player
-import com.example.lakbayaral.data.repository.FirebaseRepository
 import com.example.lakbayaral.data.repository.UserProgressRepository
 import com.example.lakbayaral.ui.components.*
 import com.example.lakbayaral.ui.theme.*
@@ -34,7 +33,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LeaderboardViewModel @Inject constructor(
-    private val firebaseRepo : FirebaseRepository,
     private val progressRepo : UserProgressRepository
 ) : ViewModel() {
 
@@ -48,37 +46,14 @@ class LeaderboardViewModel @Inject constructor(
 
     private fun loadLeaderboard() {
         viewModelScope.launch {
-            try {
-                firebaseRepo.getTopPlayers().collect { list ->
-                    _players.value = list
-                    _isLoading.value = false
-                }
-            } catch (e: Exception) {
-                // Offline fallback: show only local player
-                _players.value = listOf(
-                    Player(
-                        displayName           = progressRepo.getPlayerName(),
-                        totalScore            = progressRepo.getTotalScore(),
-                        municipalitiesUnlocked= progressRepo.progress.unlockedMunicipalities.size,
-                        rank                  = 1
-                    )
-                )
-                _isLoading.value = false
-            }
+            _players.value = progressRepo.getLeaderboardPlayers()
+            _isLoading.value = false
         }
     }
 
     fun uploadMyScore() {
         viewModelScope.launch {
-            val name     = progressRepo.getPlayerName()
-            val score    = progressRepo.getTotalScore()
-            val unlocked = progressRepo.progress.unlockedMunicipalities.size
-            val results  = progressRepo.progress.quizResults.values
-            val accuracy = if (results.isNotEmpty())
-                results.sumOf { it.percentage }.toFloat() / results.size
-            else 0f
-
-            firebaseRepo.uploadScore(name, score, unlocked, accuracy)
+            progressRepo.saveLocalLeaderboardEntry()
             loadLeaderboard()
         }
     }

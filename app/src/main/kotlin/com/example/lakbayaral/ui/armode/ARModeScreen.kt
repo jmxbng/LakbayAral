@@ -38,7 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -72,6 +72,7 @@ import com.example.lakbayaral.data.models.HistoricalObject
 import com.example.lakbayaral.data.models.Municipality
 import com.example.lakbayaral.data.models.ObjectType
 import com.example.lakbayaral.data.repository.LocalDataSource
+import com.example.lakbayaral.data.repository.UserProgressRepository
 import com.example.lakbayaral.ui.components.DarkBackground
 import com.example.lakbayaral.ui.components.NeonButton
 import com.example.lakbayaral.ui.components.PulsingDot
@@ -91,7 +92,12 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class ARModeViewModel @Inject constructor() : ViewModel() {
+class ARModeViewModel @Inject constructor(
+    private val progressRepo: UserProgressRepository
+) : ViewModel() {
+    private var activeMunicipalityId: String = ""
+    private var activeMode: String = ""
+
     private val _municipality = MutableStateFlow<Municipality?>(null)
     val municipality: StateFlow<Municipality?> = _municipality
 
@@ -105,6 +111,8 @@ class ARModeViewModel @Inject constructor() : ViewModel() {
     val placedCount: StateFlow<Int> = _placedCount
 
     fun load(municipalityId: String, mode: String) {
+        activeMunicipalityId = municipalityId
+        activeMode = mode
         _municipality.value = LocalDataSource.getMunicipality(municipalityId)
         _selectedObject.value = null
         _allPlaced.value = false
@@ -126,6 +134,12 @@ class ARModeViewModel @Inject constructor() : ViewModel() {
 
     fun onObjectPlaced(total: Int) {
         _placedCount.value = (_placedCount.value + 1).coerceAtMost(total)
+        progressRepo.saveARProgress(
+            municipalityId = activeMunicipalityId,
+            mode = activeMode,
+            placedCount = _placedCount.value,
+            totalCount = total
+        )
     }
 
     fun onAllPlaced() {
@@ -272,8 +286,9 @@ private fun PlacementPrompt(nextObject: HistoricalObject?, hasObjects: Boolean) 
             PulsingDot(color = NeonBlue)
             Spacer(Modifier.height(6.dp))
             if (nextObject != null) {
-                Text("Tap a detected floor plane to place", color = WhiteGlow.copy(alpha = 0.62f), fontSize = 12.sp)
+                Text("Tap a tracked floor plane to anchor", color = WhiteGlow.copy(alpha = 0.62f), fontSize = 12.sp)
                 Text(nextObject.name, color = Gold, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text("Then tap the hologram to open its history", color = WhiteGlow.copy(alpha = 0.46f), fontSize = 11.sp)
             } else if (!hasObjects) {
                 Text("No AR objects configured for this mode", color = WhiteGlow.copy(alpha = 0.7f), fontSize = 13.sp)
             }
@@ -318,11 +333,12 @@ fun ARView(
                 val spawner = ARSpawner(ctx, arView, onObjectTapped)
                 val manager = ARInteractionManager(
                     objectList = objectList,
-                    onObjectTap = onObjectTapped,
                     onPlacementTap = { obj, hit ->
-                        if (spawner.spawnObject(obj, hit)) {
+                        val placed = spawner.spawnObject(obj, hit)
+                        if (placed) {
                             onObjectPlaced()
                         }
+                        placed
                     },
                     onOutOfObjects = onAllPlaced
                 )
@@ -332,12 +348,14 @@ fun ARView(
                         override fun onSingleTapConfirmed(e: MotionEvent, node: Node?) {
                             if (node != null || manager.allPlaced) return
 
+                            val camera = arView.frame?.camera ?: return
                             val hitResult = arView.hitTestAR(
                                 xPx = e.x,
                                 yPx = e.y,
                                 planeTypes = setOf(Plane.Type.HORIZONTAL_UPWARD_FACING),
                                 trackingStates = setOf(TrackingState.TRACKING),
-                                planePoseInPolygon = true
+                                planePoseInPolygon = true,
+                                minCameraDistance = camera to 0.35f
                             ) ?: return
 
                             val plane = hitResult.trackable as? Plane ?: return
@@ -445,7 +463,7 @@ fun HistoryPanel(obj: HistoricalObject, onDismiss: () -> Unit) {
         }
 
         Spacer(Modifier.height(12.dp))
-        Divider(color = Gold.copy(alpha = 0.2f))
+        HorizontalDivider(color = Gold.copy(alpha = 0.2f))
         Spacer(Modifier.height(12.dp))
 
         Text("HISTORY", color = NeonBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)

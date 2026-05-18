@@ -21,6 +21,8 @@ import io.github.sceneview.node.SphereNode
 import kotlin.math.sin
 
 private const val TAG = "ARSpawner"
+private const val PLACE_MODEL_HEIGHT_METERS = 0.78f
+private const val PERSON_MODEL_HEIGHT_METERS = 0.58f
 
 class ARSpawner(
     private val context: Context,
@@ -36,9 +38,24 @@ class ARSpawner(
             return false
         }
 
-        val anchorNode = AnchorNode(sceneView.engine, anchor).apply {
+        val anchorNode = AnchorNode(
+            engine = sceneView.engine,
+            anchor = anchor,
+            onTrackingStateChanged = { state ->
+                Log.d(TAG, "Anchor ${historicalObject.id} tracking state: $state")
+            }
+        ).apply {
             name = "anchor:${historicalObject.id}"
+            isTouchable = false
+            isHittable = false
         }
+
+        val contentRoot = Node(sceneView.engine).apply {
+            name = "content:${historicalObject.id}"
+            bindTap(historicalObject)
+        }
+        contentRoot.addChildNode(createPlacementPedestal(historicalObject))
+        anchorNode.addChildNode(contentRoot)
 
         sceneView.addChildNode(anchorNode)
         spawnedNodes.add(anchorNode)
@@ -46,17 +63,19 @@ class ARSpawner(
         val modelFile = historicalObject.modelAsset
         if (modelFile.isNotBlank() && assetExists(modelFile)) {
             sceneView.modelLoader.loadModelInstanceAsync(modelFile) { modelInstance ->
+                if (anchorNode !in spawnedNodes) return@loadModelInstanceAsync
+
                 if (modelInstance != null) {
-                    anchorNode.addChildNode(createModelNode(historicalObject, modelInstance))
+                    contentRoot.addChildNode(createModelNode(historicalObject, modelInstance))
                     Log.d(TAG, "Loaded model for ${historicalObject.name}: $modelFile")
                 } else {
                     Log.w(TAG, "Model load failed for $modelFile; using fallback marker")
-                    anchorNode.addChildNode(createFallbackMarker(historicalObject))
+                    contentRoot.addChildNode(createFallbackMarker(historicalObject))
                 }
             }
         } else {
             Log.w(TAG, "Missing model asset '$modelFile'; using fallback marker")
-            anchorNode.addChildNode(createFallbackMarker(historicalObject))
+            contentRoot.addChildNode(createFallbackMarker(historicalObject))
         }
 
         Log.d(TAG, "Spawned ${historicalObject.name}")
@@ -79,6 +98,83 @@ class ARSpawner(
         }
     }
 
+    private fun createPlacementPedestal(historicalObject: HistoricalObject): Node {
+        val engine = sceneView.engine
+        val gold = sceneView.materialLoader.createColorInstance(
+            AndroidColor.argb(245, 200, 162, 74),
+            metallic = 0.2f,
+            roughness = 0.22f,
+            reflectance = 0.75f
+        )
+        val neon = sceneView.materialLoader.createColorInstance(
+            AndroidColor.argb(230, 77, 227, 255),
+            metallic = 0.0f,
+            roughness = 0.16f,
+            reflectance = 0.95f
+        )
+        val darkGlass = sceneView.materialLoader.createColorInstance(
+            AndroidColor.argb(225, 17, 24, 39),
+            metallic = 0.05f,
+            roughness = 0.3f,
+            reflectance = 0.7f
+        )
+
+        val pedestal = Node(engine).apply {
+            name = "pedestal:${historicalObject.id}"
+            bindTap(historicalObject)
+        }
+
+        val base = CylinderNode(
+            engine = engine,
+            radius = 0.28f,
+            height = 0.028f,
+            center = Position(0f, 0.014f, 0f),
+            sideCount = 72,
+            materialInstance = darkGlass
+        )
+
+        val outerRing = CylinderNode(
+            engine = engine,
+            radius = 0.32f,
+            height = 0.006f,
+            center = Position(0f, 0.034f, 0f),
+            sideCount = 96,
+            materialInstance = neon
+        )
+
+        val innerRing = CylinderNode(
+            engine = engine,
+            radius = 0.18f,
+            height = 0.008f,
+            center = Position(0f, 0.044f, 0f),
+            sideCount = 72,
+            materialInstance = gold
+        )
+
+        val beacon = CylinderNode(
+            engine = engine,
+            radius = 0.012f,
+            height = 0.46f,
+            center = Position(0f, 0.27f, 0f),
+            sideCount = 24,
+            materialInstance = neon
+        )
+
+        listOf(base, outerRing, innerRing, beacon).forEach { node ->
+            node.bindTap(historicalObject)
+            pedestal.addChildNode(node)
+        }
+
+        pedestal.onFrame = { frameTimeNanos ->
+            val seconds = frameTimeNanos / 1_000_000_000f
+            val pulse = 1f + sin(seconds * 2.8f) * 0.045f
+            outerRing.scale = Scale(pulse, 1f, pulse)
+            beacon.scale = Scale(1f, 0.75f + sin(seconds * 3.4f) * 0.18f, 1f)
+        }
+
+        return pedestal
+    }
+
     private fun createModelNode(
         historicalObject: HistoricalObject,
         modelInstance: io.github.sceneview.model.ModelInstance
@@ -86,11 +182,18 @@ class ARSpawner(
         return ModelNode(
             modelInstance = modelInstance,
             autoAnimate = true,
-            scaleToUnits = if (historicalObject.type == ObjectType.PLACE) 0.65f else 0.45f,
-            centerOrigin = Position(0f, 0f, 0f)
+            scaleToUnits = if (historicalObject.type == ObjectType.PLACE) {
+                PLACE_MODEL_HEIGHT_METERS
+            } else {
+                PERSON_MODEL_HEIGHT_METERS
+            },
+            centerOrigin = Position(0f, -1f, 0f)
         ).apply {
             name = "model:${historicalObject.id}"
-            scale = if (historicalObject.type == ObjectType.PLACE) Scale(0.7f) else Scale(0.5f)
+            position = Position(0f, 0.045f, 0f)
+            isShadowCaster = true
+            isShadowReceiver = true
+            setCulling(false)
             bindTap(historicalObject)
         }
     }
@@ -98,19 +201,19 @@ class ARSpawner(
     private fun createFallbackMarker(historicalObject: HistoricalObject): Node {
         val engine = sceneView.engine
         val gold = sceneView.materialLoader.createColorInstance(
-            AndroidColor.argb(235, 200, 162, 74),
+            AndroidColor.argb(245, 200, 162, 74),
             metallic = 0.15f,
             roughness = 0.25f,
             reflectance = 0.7f
         )
         val neon = sceneView.materialLoader.createColorInstance(
-            AndroidColor.argb(185, 77, 227, 255),
+            AndroidColor.argb(230, 77, 227, 255),
             metallic = 0.0f,
             roughness = 0.18f,
             reflectance = 0.9f
         )
         val darkGlass = sceneView.materialLoader.createColorInstance(
-            AndroidColor.argb(190, 17, 24, 39),
+            AndroidColor.argb(225, 17, 24, 39),
             metallic = 0.05f,
             roughness = 0.35f,
             reflectance = 0.6f
@@ -121,30 +224,12 @@ class ARSpawner(
             bindTap(historicalObject)
         }
 
-        val base = CylinderNode(
-            engine = engine,
-            radius = 0.18f,
-            height = 0.035f,
-            center = Position(0f, 0.018f, 0f),
-            sideCount = 48,
-            materialInstance = darkGlass
-        )
-
-        val ring = CylinderNode(
-            engine = engine,
-            radius = 0.205f,
-            height = 0.01f,
-            center = Position(0f, 0.045f, 0f),
-            sideCount = 64,
-            materialInstance = neon
-        )
-
         val pieces = when (historicalObject.type) {
             ObjectType.PLACE -> createPlaceMarkerPieces(historicalObject, gold, neon, darkGlass)
             ObjectType.PERSON -> createPersonMarkerPieces(gold, neon, darkGlass)
         }
 
-        (listOf(base, ring) + pieces).forEach { node ->
+        pieces.forEach { node ->
             node.bindTap(historicalObject)
             marker.addChildNode(node)
         }

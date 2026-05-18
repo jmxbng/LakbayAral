@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.lakbayaral.data.models.QuizQuestion
 import com.example.lakbayaral.data.models.QuizResult
 import com.example.lakbayaral.data.repository.LocalDataSource
@@ -30,10 +29,8 @@ import com.example.lakbayaral.data.repository.UserProgressRepository
 import com.example.lakbayaral.ui.components.*
 import com.example.lakbayaral.ui.theme.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 // ── Quiz State ─────────────────────────────────────────────────────────────────
@@ -79,11 +76,12 @@ class QuizViewModel @Inject constructor(
         _phase.value = current.copy(selected = choiceIndex, showFeedback = true)
 
         if (choiceIndex == current.question.correctIndex) score++
+    }
 
-        viewModelScope.launch {
-            delay(1600) // show feedback briefly
-            advance(current.index)
-        }
+    fun nextQuestion() {
+        val current = _phase.value as? QuizPhase.Question ?: return
+        if (current.selected == null) return
+        advance(current.index)
     }
 
     private fun advance(currentIndex: Int) {
@@ -132,7 +130,11 @@ fun QuizScreen(
         ) { currentPhase ->
             when (currentPhase) {
                 is QuizPhase.Intro    -> QuizIntroView(municipalityId, onBack, onStart = viewModel::startQuiz)
-                is QuizPhase.Question -> QuizQuestionView(currentPhase, onSelect = viewModel::selectAnswer)
+                is QuizPhase.Question -> QuizQuestionView(
+                    state = currentPhase,
+                    onSelect = viewModel::selectAnswer,
+                    onNext = viewModel::nextQuestion
+                )
                 is QuizPhase.Result   -> QuizResultView(currentPhase.result, onRetry = viewModel::retry, onFinish = onFinished)
             }
         }
@@ -189,7 +191,7 @@ fun QuizRule(emoji: String, text: String) {
 
 // ── Question ──────────────────────────────────────────────────────────────────
 @Composable
-fun QuizQuestionView(state: QuizPhase.Question, onSelect: (Int) -> Unit) {
+fun QuizQuestionView(state: QuizPhase.Question, onSelect: (Int) -> Unit, onNext: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -276,6 +278,16 @@ fun QuizQuestionView(state: QuizPhase.Question, onSelect: (Int) -> Unit) {
                 Text("💡 ${state.question.explanation}", color = NeonBlue, fontSize = 13.sp)
             }
         }
+
+        Spacer(Modifier.height(18.dp))
+
+        NeonButton(
+            text = "NEXT",
+            onClick = onNext,
+            enabled = state.selected != null,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            glowColor = if (state.selected != null) Gold else WhiteGlow.copy(alpha = 0.35f)
+        )
 
         Spacer(Modifier.height(32.dp))
     }
