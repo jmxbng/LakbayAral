@@ -80,6 +80,18 @@ object LocalDataSource {
                     "fighting spirit of the region.",
             yearBuilt    = "1861–1897",
             modelAsset   = "models/bust_chief.glb"
+        ),
+        HistoricalObject(
+            id           = "diosdado_macapagal",
+            name         = "Diosdado Macapagal",
+            type         = ObjectType.PERSON,
+            description  = "Diosdado Macapagal, born in Lubao, Pampanga, became the ninth " +
+                    "President of the Philippines. He is remembered for public service, " +
+                    "education reforms, and moving Philippine Independence Day to June 12.",
+            significance = "Macapagal connects Lubao's local story to national history, showing " +
+                    "how leaders from Pampanga helped shape the modern Philippine republic.",
+            yearBuilt    = "1910-1997",
+            modelAsset   = "models/bust_president.glb"
         )
     )
 

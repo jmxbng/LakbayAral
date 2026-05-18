@@ -3,6 +3,7 @@ package com.example.lakbayaral.ar
 import com.example.lakbayaral.data.models.HistoricalObject
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
+import com.google.ar.core.TrackingState
 
 /**
  * Coordinates tap events between the ARSceneView and the composable UI layer.
@@ -30,6 +31,14 @@ class ARInteractionManager(
      * Places the next object in the sequence.
      */
     fun onPlaneTap(hitResult: HitResult, plane: Plane) {
+        if (
+            plane.trackingState != TrackingState.TRACKING ||
+            plane.type != Plane.Type.HORIZONTAL_UPWARD_FACING ||
+            !plane.isPoseInPolygon(hitResult.hitPose)
+        ) {
+            return
+        }
+
         val obj = nextObject ?: run {
             onOutOfObjects()
             return
