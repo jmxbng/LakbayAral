@@ -1,4 +1,22 @@
-# Project exclude paths
-/.gradle/
+# Gradle
+.gradle/
+
+# Build folders
+/build/
 /app/build/
-/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/
+
+# Android Studio
+.idea/
+*.iml
+
+# Local config
+local.properties
+
+# Memory dump files
+*.hprof
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
