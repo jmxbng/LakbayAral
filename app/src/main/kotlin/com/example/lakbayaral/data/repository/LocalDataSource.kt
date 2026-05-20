@@ -17,7 +17,7 @@ object LocalDataSource {
             description  = "Founded in 1572 as one of the earliest Augustinian mission churches in Central Luzon. The first church structure was built near the riverbanks of Gato using wood, bamboo, and nipa materials. During the British occupation of Manila in 1762, theology students from Manila were transferred to the Lubao convent. The church later became an emergency station for revolutionary forces in 1898, a hospital during the American occupation in 1899, and suffered damage during Japanese attacks in 1942. It also served as an evacuation shelter after the 1991 Mt. Pinatubo eruption.",
             significance = "The church symbolizes Lubao’s importance as one of the earliest Christian and missionary centers in Pampanga. It played major religious, political, and historical roles throughout Spanish, American, Japanese, and modern Philippine history.",
             yearBuilt    = "1572",
-            modelAsset   = "models/LubaoChurch.glb"
+            modelAsset   = "models/church.glb"
         ),
         HistoricalObject(
             id           = "bamboo_park",
@@ -35,7 +35,7 @@ object LocalDataSource {
             description  = "The Municipal Hall of Lubao is the center of local government where official administrative and public service operations are conducted. It represents the development of Lubao’s political system from its historical roots during the Spanish period into a modern organized municipality. The building has served as the main seat of governance where local leaders implement policies and community programs for the town.",
             significance = "The Municipal Hall symbolizes modern governance and civic leadership in Lubao. It is the place where decisions for public service, development projects, and municipal administration are made, reflecting the town’s progress and modernization.",
             yearBuilt    = "Modern development (estimated 20th century–present)",
-            modelAsset   = "models/Municipality.glb"
+            modelAsset   = "models/municipality.glb"
         )
     )
 
@@ -48,7 +48,7 @@ object LocalDataSource {
             description  = "Jose B. Lingad was a Filipino politician and war veteran born in Lubao, Pampanga. He served as a representative of Pampanga and later became the Secretary of Labor. He was also known for his role in the Philippine resistance during World War II as part of the guerrilla movement against Japanese occupation.",
             significance = "He represents Lubao’s contribution to national leadership and wartime resistance. His legacy is honored in Pampanga through public institutions named after him, including hospitals and schools.",
             yearBuilt    = "1914 – 1980",
-            modelAsset   = "models/JosePLingad.glb"
+            modelAsset   = "models/JoseBLingad.glb"
         ),
         HistoricalObject(
             id           = "diosdado_p_macapagal",
