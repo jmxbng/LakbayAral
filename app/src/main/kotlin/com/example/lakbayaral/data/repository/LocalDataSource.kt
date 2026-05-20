@@ -20,13 +20,13 @@ object LocalDataSource {
             modelAsset   = "models/church.glb"
         ),
         HistoricalObject(
-            id           = "bamboo_park",
-            name         = "Lubao Bamboo Hub / Bamboo Park",
+            id           = "arrastia_house",
+            name         = "Arrastia House (Casa Lubao)",
             type         = ObjectType.PLACE,
-            description  = "The Bamboo Park in Lubao is part of the municipality’s eco-tourism development under modern environmental and tourism initiatives. It showcases bamboo landscapes, eco-structures, and nature-based attractions that promote sustainability and local tourism in Pampanga.",
-            significance = "The park represents Lubao’s shift toward eco-tourism and environmental awareness. It highlights the use of bamboo as a sustainable resource and promotes nature conservation and tourism development in the municipality.",
-            yearBuilt    = "Modern development (2010s–present)",
-            modelAsset   = "models/BambooPark.glb"
+            description  = "The Arrastia House is the grand ancestral home of one of Lubao's most influential Spanish-Filipino families. It served as a center of social gatherings and economic power during the early American colonial period, reflecting the wealth and status of the sugar and rice plantation elite.",
+            significance = "The Arrastia House symbolizes the old landed gentry that shaped Lubao's history. It is historically notable for being the place where a young Diosdado Macapagal was recognized and financially supported for his education, helping him rise from poverty to become President of the Philippines.",
+            yearBuilt    = "1920",
+            modelAsset   = "models/arrastia.glb"
         ),
         HistoricalObject(
             id           = "lubao_municipality",
@@ -35,7 +35,7 @@ object LocalDataSource {
             description  = "The Municipal Hall of Lubao is the center of local government where official administrative and public service operations are conducted. It represents the development of Lubao’s political system from its historical roots during the Spanish period into a modern organized municipality. The building has served as the main seat of governance where local leaders implement policies and community programs for the town.",
             significance = "The Municipal Hall symbolizes modern governance and civic leadership in Lubao. It is the place where decisions for public service, development projects, and municipal administration are made, reflecting the town’s progress and modernization.",
             yearBuilt    = "Modern development (estimated 20th century–present)",
-            modelAsset   = "models/municipality.glb"
+            modelAsset   = "models/Municipality.glb"
         )
     )
 

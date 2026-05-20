@@ -52,7 +52,22 @@ data class Player(
     val totalScore           : Int    = 0,
     val municipalitiesUnlocked: Int   = 1,
     val quizAccuracy         : Float  = 0f,
-    val rank                 : Int    = 0
+    val rank                 : Int    = 0,
+    val pvpPoints            : Int    = 0,
+    val onlineWins           : Int    = 0,
+    val onlineMatches        : Int    = 0
+)
+
+data class OnlineUserProfile(
+    val uid: String = "",
+    val username: String = "Explorer",
+    val email: String = "",
+    val totalScore: Int = 0,
+    val pvpPoints: Int = 0,
+    val municipalitiesUnlocked: Int = 1,
+    val quizAccuracy: Float = 0f,
+    val onlineWins: Int = 0,
+    val onlineMatches: Int = 0
 )
 
 // ── User Progress (local) ─────────────────────────────────────────────────────
