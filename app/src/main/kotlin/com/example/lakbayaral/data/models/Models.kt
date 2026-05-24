@@ -10,7 +10,8 @@ data class Municipality(
     val isUnlocked  : Boolean = false,
     val historicalPlaces : List<HistoricalObject> = emptyList(),
     val historicalPeople : List<HistoricalObject> = emptyList(),
-    val quiz        : List<QuizQuestion> = emptyList()
+    val quiz        : List<QuizQuestion> = emptyList(),
+    val onlineQuiz  : List<QuizQuestion> = emptyList()
 )
 
 // ── Historical AR Object ──────────────────────────────────────────────────────

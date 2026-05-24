@@ -145,7 +145,73 @@ object LocalDataSource {
         )
     )
 
+    private val lubaoOnlineQuiz = listOf(
+        QuizQuestion(
+            id           = "online_q1",
+            question     = "Which event in 1991 turned churches in Lubao into evacuation areas?",
+            choices      = listOf("Strong earthquake", "Volcanic eruption of Mt. Pinatubo", "Major flood", "Typhoon disaster"),
+            correctIndex = 1,
+            explanation  = "The eruption of Mt. Pinatubo in 1991 forced many residents to seek shelter in churches and schools around Lubao."
+        ),
+        QuizQuestion(
+            id           = "online_q2",
+            question     = "How was Lubao commonly described before Spanish colonization?",
+            choices      = listOf("Industrialized settlement", "Foreign trading capital", "Agricultural and river-based community", "Mountain defense village"),
+            correctIndex = 2,
+            explanation  = "Before Spanish colonization, Lubao was known as a river-based agricultural community where locals farmed and traded."
+        ),
+        QuizQuestion(
+            id           = "online_q3",
+            question     = "In what year was the San Agustin Church in Lubao established?",
+            choices      = listOf("1898", "1572", "1660", "1521"),
+            correctIndex = 1,
+            explanation  = "The San Agustin Church in Lubao was established in 1572 and is considered one of the oldest Augustinian churches in Central Luzon."
+        ),
+        QuizQuestion(
+            id           = "online_q4",
+            question     = "What is the primary role of the Lubao Municipal Hall?",
+            choices      = listOf("Military headquarters", "Public market center", "Seat of local government and services", "Religious gathering place"),
+            correctIndex = 2,
+            explanation  = "The Municipal Hall serves as the center for government operations and public services in Lubao."
+        ),
+        QuizQuestion(
+            id           = "online_q5",
+            question     = "Which Lubao-born figure became known for public service and resistance during World War II?",
+            choices      = listOf("Jose B. Lingad", "Manuel Roxas", "Sergio Osmeña", "Diosdado Macapagal"),
+            correctIndex = 0,
+            explanation  = "Jose B. Lingad was a public servant and war veteran from Lubao who participated in resistance activities during World War II."
+        ),
+        QuizQuestion(
+            id           = "online_q6",
+            question     = "Which president from Lubao officially changed Philippine Independence Day to June 12?",
+            choices      = listOf("Ramon Magsaysay", "Ferdinand Marcos", "Diosdado Macapagal", "Manuel Quezon"),
+            correctIndex = 2,
+            explanation  = "President Diosdado Macapagal moved the celebration of Independence Day from July 4 to June 12."
+        ),
+        QuizQuestion(
+            id           = "online_q7",
+            question     = "Who was the 14th President of the Philippines and a native of Lubao?",
+            choices      = listOf("Sara Duterte", "Miriam Defensor Santiago", "Gloria Macapagal-Arroyo", "Corazon Aquino"),
+            correctIndex = 2,
+            explanation  = "Gloria Macapagal-Arroyo, daughter of Diosdado Macapagal, became the country's 14th President."
+        ),
+        QuizQuestion(
+            id           = "online_q8",
+            question     = "What government position did Diosdado Macapagal hold before becoming President?",
+            choices      = listOf("Governor", "Vice President", "Chief Justice", "Senator"),
+            correctIndex = 1,
+            explanation  = "Before becoming President, Diosdado Macapagal first served as the Vice President of the Philippines."
+        ),
+    )
+
     // ── Municipality Catalog ───────────────────────────────────────────────────
+    // Guagua content slots are intentionally empty for now.
+    // Add future Guagua AR places, historical people, and quizzes here without changing screens.
+    private val guaguaPlaces = emptyList<HistoricalObject>()
+    private val guaguaPeople = emptyList<HistoricalObject>()
+    private val guaguaQuiz = emptyList<QuizQuestion>()
+    private val guaguaOnlineQuiz = emptyList<QuizQuestion>()
+
     val municipalities = listOf(
         Municipality(
             id               = "lubao",
@@ -156,7 +222,8 @@ object LocalDataSource {
             isUnlocked       = true,
             historicalPlaces = lubaoPlaces,
             historicalPeople = lubaopeople,
-            quiz             = lubaoQuiz
+            quiz             = lubaoQuiz,
+            onlineQuiz       = lubaoOnlineQuiz
         ),
         Municipality(
             id          = "bacolor",
@@ -177,9 +244,15 @@ object LocalDataSource {
                     "Revolution and its vibrant cultural traditions including Lenten rites.",
             imageRes    = "guagua_hero",
             isUnlocked  = false,
-            quiz        = emptyList()
+            historicalPlaces = guaguaPlaces,
+            historicalPeople = guaguaPeople,
+            quiz        = guaguaQuiz,
+            onlineQuiz  = guaguaOnlineQuiz
         )
     )
 
     fun getMunicipality(id: String): Municipality? = municipalities.find { it.id == id }
+
+    fun getMunicipalities(ids: Set<String>): List<Municipality> =
+        municipalities.filter { it.id in ids }
 }

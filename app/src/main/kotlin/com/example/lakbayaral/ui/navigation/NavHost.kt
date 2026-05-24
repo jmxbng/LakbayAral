@@ -106,9 +106,13 @@ fun LakbayAralNavHost() {
             val id = backStack.arguments?.getString("municipalityId") ?: ""
             QuizScreen(
                 municipalityId = id,
-                onFinished     = { navController.navigate(Routes.MAP) {
-                    popUpTo(Routes.MAP) { inclusive = false }
-                }},
+                onFinished     = { unlockedMunicipalityId ->
+                    val destination = unlockedMunicipalityId?.let { Routes.municipality(it) }
+                        ?: Routes.MAP
+                    navController.navigate(destination) {
+                        popUpTo(Routes.MAP) { inclusive = false }
+                    }
+                },
                 onBack         = { navController.popBackStack() }
             )
         }

@@ -34,7 +34,7 @@ object ARController {
         val config = Config(session).apply {
             planeFindingMode    = Config.PlaneFindingMode.HORIZONTAL
             updateMode          = Config.UpdateMode.LATEST_CAMERA_IMAGE
-            lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+            lightEstimationMode = Config.LightEstimationMode.DISABLED
             cloudAnchorMode     = Config.CloudAnchorMode.DISABLED
         }
         session.configure(config)

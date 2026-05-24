@@ -81,15 +81,30 @@ import com.example.lakbayaral.ui.theme.Gold
 import com.example.lakbayaral.ui.theme.NeonBlue
 import com.example.lakbayaral.ui.theme.SuccessGreen
 import com.example.lakbayaral.ui.theme.WhiteGlow
+import com.google.android.filament.ColorGrading
+import com.google.android.filament.ToneMapper
+import com.google.android.filament.utils.KTX1Loader
 import com.google.ar.core.Config
 import com.google.ar.core.Plane
 import com.google.ar.core.TrackingState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.romainguy.kotlin.math.Float2
 import io.github.sceneview.ar.ARSceneView
+import io.github.sceneview.math.Direction
 import io.github.sceneview.node.Node
+import io.github.sceneview.utils.readBuffer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
+
+private const val NEUTRAL_IBL_ASSET = "environments/neutral/neutral_ibl.ktx"
+private const val AR_OBJECT_IBL_INTENSITY = 36_000f
+private const val AR_OBJECT_KEY_LIGHT_INTENSITY = 58_000f
+private const val AR_OBJECT_EXPOSURE_APERTURE = 16.0f
+private const val AR_OBJECT_EXPOSURE_SHUTTER = 1f / 125f
+private const val AR_OBJECT_EXPOSURE_ISO = 100f
+private const val AR_OBJECT_COLOR_EXPOSURE = 0.0f
+private val AR_OBJECT_KEY_LIGHT_DIRECTION = Direction(x = -0.38f, y = -0.82f, z = -0.42f)
 
 @HiltViewModel
 class ARModeViewModel @Inject constructor(
@@ -327,10 +342,12 @@ fun ARView(
                 arView.configureSession { _, config ->
                     config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
                     config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
-                    config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+                    config.lightEstimationMode = Config.LightEstimationMode.DISABLED
                 }
+                configureARObjectRendering(arView)
 
                 val spawner = ARSpawner(ctx, arView, onObjectTapped)
+                var activeRotationRoot: Node? = null
                 val manager = ARInteractionManager(
                     objectList = objectList,
                     onPlacementTap = { obj, hit ->
@@ -345,6 +362,32 @@ fun ARView(
 
                 arView.onGestureListener =
                     object : io.github.sceneview.gesture.GestureDetector.SimpleOnGestureListener() {
+                        override fun onDown(e: MotionEvent, node: Node?) {
+                            activeRotationRoot = spawner.findObjectRoot(node)
+                            spawner.beginObjectRotation(activeRotationRoot)
+                        }
+
+                        override fun onScroll(
+                            e1: MotionEvent?,
+                            e2: MotionEvent,
+                            node: Node?,
+                            distance: Float2
+                        ) {
+                            val rotationRoot = activeRotationRoot ?: spawner.findObjectRoot(node)
+                            if (rotationRoot != null) {
+                                spawner.rotateObjectFromDrag(rotationRoot, distance.x)
+                            }
+                        }
+
+                        override fun onMoveEnd(
+                            detector: io.github.sceneview.gesture.MoveGestureDetector,
+                            e: MotionEvent,
+                            node: Node?
+                        ) {
+                            spawner.endObjectRotation(activeRotationRoot ?: node)
+                            activeRotationRoot = null
+                        }
+
                         override fun onSingleTapConfirmed(e: MotionEvent, node: Node?) {
                             if (node != null || manager.allPlaced) return
 
@@ -365,6 +408,48 @@ fun ARView(
             }
         }
     )
+}
+
+private fun configureARObjectRendering(arView: ARSceneView) {
+    arView.lightEstimator?.apply {
+        isEnabled = false
+        environmentalHdrReflections = false
+        environmentalHdrSphericalHarmonics = false
+        environmentalHdrSpecularFilter = false
+        environmentalHdrMainLightDirection = false
+        environmentalHdrMainLightIntensity = false
+    }
+
+    runCatching {
+        KTX1Loader.createIndirectLight(
+            arView.engine,
+            arView.context.assets.readBuffer(NEUTRAL_IBL_ASSET)
+        ).apply {
+            setIntensity(AR_OBJECT_IBL_INTENSITY)
+        }
+    }.getOrNull()?.let { neutralIndirectLight ->
+        arView.environment = arView.environmentLoader.createEnvironment(
+            indirectLight = neutralIndirectLight,
+            skybox = null
+        )
+    } ?: arView.indirectLight?.setIntensity(AR_OBJECT_IBL_INTENSITY)
+
+    arView.mainLightNode?.apply {
+        intensity = AR_OBJECT_KEY_LIGHT_INTENSITY
+        lightDirection = AR_OBJECT_KEY_LIGHT_DIRECTION
+        isShadowCaster = false
+    }
+    arView.cameraNode.setExposure(
+        AR_OBJECT_EXPOSURE_APERTURE,
+        AR_OBJECT_EXPOSURE_SHUTTER,
+        AR_OBJECT_EXPOSURE_ISO
+    )
+    arView.view.colorGrading = ColorGrading.Builder()
+        .toneMapper(ToneMapper.PBRNeutralToneMapper())
+        .exposure(AR_OBJECT_COLOR_EXPOSURE)
+        .contrast(1.0f)
+        .saturation(1.0f)
+        .build(arView.engine)
 }
 
 @Composable

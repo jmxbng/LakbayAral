@@ -153,7 +153,7 @@ fun MunicipalityCard(municipality: Municipality, onTap: () -> Unit) {
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text     = if (municipality.isUnlocked) municipality.description.take(80) + "..." else "Complete previous quiz to unlock",
+                    text     = if (municipality.isUnlocked) municipality.description.take(80) + "..." else "Pass a municipality quiz to unlock",
                     color    = WhiteGlow.copy(alpha = if (municipality.isUnlocked) 0.6f else 0.3f),
                     fontSize = 12.sp,
                     maxLines = 2

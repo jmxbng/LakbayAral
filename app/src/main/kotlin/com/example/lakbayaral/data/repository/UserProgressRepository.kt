@@ -8,6 +8,7 @@ import com.example.lakbayaral.data.local.LeaderboardEntity
 import com.example.lakbayaral.data.local.MunicipalityProgressEntity
 import com.example.lakbayaral.data.local.QuizResultEntity
 import com.example.lakbayaral.data.local.UserEntity
+import com.example.lakbayaral.data.models.Municipality
 import com.example.lakbayaral.data.models.Player
 import com.example.lakbayaral.data.models.QuizResult
 import com.example.lakbayaral.data.models.UserProgress
@@ -78,9 +79,14 @@ class UserProgressRepository @Inject constructor(
             dao.upsertUser(user.copy(totalScore = newScore, updatedAt = System.currentTimeMillis()))
         }
 
-        if (result.passed) unlockNextMunicipality(result.municipalityId)
         saveLocalLeaderboardEntry()
     }
+
+    fun getMunicipalityUnlockChoices(completedMunicipalityId: String): List<Municipality> =
+        LocalDataSource.municipalities.filter { municipality ->
+            municipality.id != completedMunicipalityId &&
+                !isMunicipalityUnlocked(municipality.id)
+        }
 
     fun saveARProgress(
         municipalityId: String,
@@ -229,15 +235,6 @@ class UserProgressRepository @Inject constructor(
                     rank = index + 1
                 )
             }
-        }
-    }
-
-    private fun unlockNextMunicipality(currentId: String) {
-        val municipalities = LocalDataSource.municipalities
-        val currentIndex = municipalities.indexOfFirst { it.id == currentId }
-        if (currentIndex >= 0 && currentIndex + 1 < municipalities.size) {
-            val nextId = municipalities[currentIndex + 1].id
-            unlockMunicipality(nextId)
         }
     }
 

@@ -18,11 +18,27 @@ import io.github.sceneview.node.CylinderNode
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.node.Node
 import io.github.sceneview.node.SphereNode
+import kotlin.math.abs
+import kotlin.math.exp
 import kotlin.math.sin
 
 private const val TAG = "ARSpawner"
 private const val PLACE_MODEL_HEIGHT_METERS = 0.78f
 private const val PERSON_MODEL_HEIGHT_METERS = 0.58f
+private const val CONTENT_NODE_PREFIX = "content:"
+private const val FLOOR_SPAWN_SCALE = 0.82f
+private const val FLOOR_HOLD_NANOS = 240_000_000L
+private const val CINEMATIC_LIFT_NANOS = 1_650_000_000L
+private const val DEFAULT_EYE_HEIGHT_METERS = 1.35f
+private const val MIN_LIFT_HEIGHT_METERS = 0.92f
+private const val MAX_LIFT_HEIGHT_METERS = 1.38f
+private const val ROTATION_DEGREES_PER_PIXEL = 0.16f
+private const val ROTATION_MAX_EVENT_PIXELS = 42f
+private const val ROTATION_INPUT_BLEND = 0.82f
+private const val ROTATION_FOLLOW_SPEED = 34f
+private const val ROTATION_SNAP_DEGREES = 0.02f
+private const val ROTATION_YAW_COMPACT_THRESHOLD = 7200f
+private const val NANOS_TO_SECONDS = 1_000_000_000f
 
 class ARSpawner(
     private val context: Context,
@@ -31,6 +47,7 @@ class ARSpawner(
 ) {
 
     private val spawnedNodes = mutableListOf<Node>()
+    private val objectMotions = mutableMapOf<Node, ObjectMotion>()
 
     fun spawnObject(historicalObject: HistoricalObject, hitResult: HitResult): Boolean {
         val anchor = hitResult.createAnchorOrNull() ?: run {
@@ -48,13 +65,19 @@ class ARSpawner(
             name = "anchor:${historicalObject.id}"
             isTouchable = false
             isHittable = false
+            lockTransformEditing()
         }
 
         val contentRoot = Node(sceneView.engine).apply {
-            name = "content:${historicalObject.id}"
+            name = "$CONTENT_NODE_PREFIX${historicalObject.id}"
+            position = Position(0f, 0f, 0f)
+            rotation = Rotation(0f, 0f, 0f)
+            scale = Scale(FLOOR_SPAWN_SCALE)
             bindTap(historicalObject)
         }
-        /*contentRoot.addChildNode(createPlacementPedestal(historicalObject))*/
+        objectMotions[contentRoot] = ObjectMotion()
+        val liftHeightMeters = calculateEyeLevelLift(historicalObject, hitResult)
+
         anchorNode.addChildNode(contentRoot)
 
         sceneView.addChildNode(anchorNode)
@@ -67,19 +90,68 @@ class ARSpawner(
 
                 if (modelInstance != null) {
                     contentRoot.addChildNode(createModelNode(historicalObject, modelInstance))
+                    startCinematicLift(contentRoot, liftHeightMeters)
                     Log.d(TAG, "Loaded model for ${historicalObject.name}: $modelFile")
                 } else {
                     Log.w(TAG, "Model load failed for $modelFile; using fallback marker")
                     contentRoot.addChildNode(createFallbackMarker(historicalObject))
+                    startCinematicLift(contentRoot, liftHeightMeters)
                 }
             }
         } else {
             Log.w(TAG, "Missing model asset '$modelFile'; using fallback marker")
             contentRoot.addChildNode(createFallbackMarker(historicalObject))
+            startCinematicLift(contentRoot, liftHeightMeters)
         }
 
         Log.d(TAG, "Spawned ${historicalObject.name}")
         return true
+    }
+
+    fun findObjectRoot(node: Node?): Node? {
+        var current = node
+        while (current != null) {
+            if (current.name?.startsWith(CONTENT_NODE_PREFIX) == true) return current
+            current = current.parent
+        }
+        return null
+    }
+
+    fun rotateObjectFromDrag(node: Node?, deltaPixels: Float): Boolean {
+        val root = findObjectRoot(node) ?: return false
+        val motion = objectMotions.getOrPut(root) {
+            ObjectMotion(displayedYaw = root.rotation.y, targetYaw = root.rotation.y)
+        }
+        val stableDeltaPixels = deltaPixels.coerceIn(-ROTATION_MAX_EVENT_PIXELS, ROTATION_MAX_EVENT_PIXELS)
+        val smoothedDeltaPixels = if (motion.hasDragSample) {
+            motion.smoothedDragPixels +=
+                (stableDeltaPixels - motion.smoothedDragPixels) * ROTATION_INPUT_BLEND
+            motion.smoothedDragPixels
+        } else {
+            motion.hasDragSample = true
+            stableDeltaPixels
+        }
+        motion.targetYaw -= smoothedDeltaPixels * ROTATION_DEGREES_PER_PIXEL
+        return true
+    }
+
+    fun beginObjectRotation(node: Node?): Boolean {
+        val root = findObjectRoot(node) ?: return false
+        val motion = objectMotions.getOrPut(root) {
+            ObjectMotion(displayedYaw = root.rotation.y, targetYaw = root.rotation.y)
+        }
+        motion.targetYaw = motion.displayedYaw
+        motion.hasDragSample = false
+        motion.smoothedDragPixels = 0f
+        return true
+    }
+
+    fun endObjectRotation(node: Node?) {
+        val root = findObjectRoot(node) ?: return
+        objectMotions[root]?.apply {
+            hasDragSample = false
+            smoothedDragPixels = 0f
+        }
     }
 
     fun clearAll() {
@@ -88,16 +160,132 @@ class ARSpawner(
             node.destroy()
         }
         spawnedNodes.clear()
+        objectMotions.clear()
     }
 
     fun removeLast() {
         if (spawnedNodes.isNotEmpty()) {
             val node = spawnedNodes.removeAt(spawnedNodes.lastIndex)
+            removeMotionFor(node)
             sceneView.removeChildNode(node)
             node.destroy()
         }
     }
 
+    private data class ObjectMotion(
+        var displayedYaw: Float = 0f,
+        var targetYaw: Float = 0f,
+        var smoothedDragPixels: Float = 0f,
+        var hasDragSample: Boolean = false,
+        var lastFrameNanos: Long? = null,
+        var liftStartNanos: Long? = null,
+        var liftComplete: Boolean = false
+    )
+
+    private fun calculateEyeLevelLift(
+        historicalObject: HistoricalObject,
+        hitResult: HitResult
+    ): Float {
+        val floorY = hitResult.hitPose.ty()
+        val cameraHeight = sceneView.frame?.camera?.pose?.ty()?.minus(floorY)
+            ?: DEFAULT_EYE_HEIGHT_METERS
+        val objectCenterOffset = when (historicalObject.type) {
+            ObjectType.PLACE -> PLACE_MODEL_HEIGHT_METERS * 0.48f
+            ObjectType.PERSON -> PERSON_MODEL_HEIGHT_METERS * 0.50f
+        }
+        return (cameraHeight - objectCenterOffset)
+            .coerceIn(MIN_LIFT_HEIGHT_METERS, MAX_LIFT_HEIGHT_METERS)
+    }
+
+    private fun startCinematicLift(contentRoot: Node, targetHeightMeters: Float) {
+        val motion = objectMotions.getOrPut(contentRoot) {
+            ObjectMotion(displayedYaw = contentRoot.rotation.y, targetYaw = contentRoot.rotation.y)
+        }
+        contentRoot.onFrame = { frameTimeNanos ->
+            val deltaSeconds = motion.lastFrameNanos?.let { previousFrame ->
+                ((frameTimeNanos - previousFrame).toFloat() / NANOS_TO_SECONDS).coerceIn(0f, 0.05f)
+            } ?: (1f / 60f)
+            motion.lastFrameNanos = frameTimeNanos
+
+            updateLift(contentRoot, targetHeightMeters, frameTimeNanos, motion)
+            updateRotation(contentRoot, deltaSeconds, motion)
+        }
+    }
+
+    private fun updateLift(
+        contentRoot: Node,
+        targetHeightMeters: Float,
+        frameTimeNanos: Long,
+        motion: ObjectMotion
+    ) {
+        if (motion.liftComplete) return
+
+        val startedAt = motion.liftStartNanos ?: frameTimeNanos.also {
+            motion.liftStartNanos = it
+        }
+        val elapsed = frameTimeNanos - startedAt
+
+        if (elapsed < FLOOR_HOLD_NANOS) {
+            contentRoot.position = Position(0f, 0f, 0f)
+            contentRoot.scale = Scale(FLOOR_SPAWN_SCALE)
+            return
+        }
+
+        val progress = ((elapsed - FLOOR_HOLD_NANOS).toFloat() / CINEMATIC_LIFT_NANOS)
+            .coerceIn(0f, 1f)
+        val eased = easeOutCubic(progress)
+        val settleArc = sin(progress * Math.PI.toFloat()) * 0.026f
+        val scalePulse = sin(progress * Math.PI.toFloat()) * 0.035f
+        val scale = FLOOR_SPAWN_SCALE + (1f - FLOOR_SPAWN_SCALE) * eased + scalePulse
+
+        contentRoot.position = Position(0f, targetHeightMeters * eased + settleArc, 0f)
+        contentRoot.scale = Scale(scale)
+
+        if (progress >= 1f) {
+            contentRoot.position = Position(0f, targetHeightMeters, 0f)
+            contentRoot.scale = Scale(1f)
+            motion.liftComplete = true
+        }
+    }
+
+    private fun updateRotation(contentRoot: Node, deltaSeconds: Float, motion: ObjectMotion) {
+        val remainingYaw = motion.targetYaw - motion.displayedYaw
+        if (abs(remainingYaw) <= ROTATION_SNAP_DEGREES) {
+            motion.displayedYaw = motion.targetYaw
+        } else {
+            val smoothing = 1f - exp(-ROTATION_FOLLOW_SPEED * deltaSeconds)
+            motion.displayedYaw += remainingYaw * smoothing
+        }
+        compactYawIfNeeded(motion)
+        contentRoot.rotation = Rotation(0f, motion.displayedYaw, 0f)
+    }
+
+    private fun Node.lockTransformEditing() {
+        isEditable = false
+        isPositionEditable = false
+        isRotationEditable = false
+        isScaleEditable = false
+    }
+
+    private fun easeOutCubic(progress: Float): Float {
+        val inverse = 1f - progress
+        return 1f - inverse * inverse * inverse
+    }
+
+    private fun compactYawIfNeeded(motion: ObjectMotion) {
+        if (abs(motion.displayedYaw) < ROTATION_YAW_COMPACT_THRESHOLD) return
+
+        val yawOffset = (motion.displayedYaw / 360f).toInt() * 360f
+        motion.displayedYaw -= yawOffset
+        motion.targetYaw -= yawOffset
+    }
+
+    private fun removeMotionFor(node: Node) {
+        objectMotions.remove(node)
+        node.childNodes.forEach(::removeMotionFor)
+    }
+
+    // Optional floor spawn effect kept detached so only the intended object is rendered by default.
     private fun createPlacementPedestal(historicalObject: HistoricalObject): Node {
         val engine = sceneView.engine
         val gold = sceneView.materialLoader.createColorInstance(
@@ -191,8 +379,9 @@ class ARSpawner(
         ).apply {
             name = "model:${historicalObject.id}"
             position = Position(0f, 0.045f, 0f)
-            isShadowCaster = true
-            isShadowReceiver = true
+            isShadowCaster = false
+            isShadowReceiver = false
+            setScreenSpaceContactShadows(false)
             setCulling(false)
             bindTap(historicalObject)
         }
@@ -288,6 +477,7 @@ class ARSpawner(
     private fun Node.bindTap(historicalObject: HistoricalObject) {
         isTouchable = true
         isHittable = true
+        lockTransformEditing()
         onSingleTapConfirmed = {
             onObjectTapped(historicalObject)
             true

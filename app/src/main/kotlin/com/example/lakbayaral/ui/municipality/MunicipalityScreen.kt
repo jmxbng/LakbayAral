@@ -158,7 +158,7 @@ fun MunicipalityScreen(
 
                 if (!quizCompleted) {
                     Text(
-                        "Pass the quiz (≥70%) to unlock the next municipality",
+                        "Pass the quiz (≥70%) to choose a municipality to unlock",
                         color = WhiteGlow.copy(0.4f), fontSize = 11.sp, textAlign = TextAlign.Center
                     )
                 }
