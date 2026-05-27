@@ -45,6 +45,10 @@ android {
         compose = true
     }
 
+    androidResources {
+        noCompress += listOf("glb")
+    }
+
     packaging {
 
         // 🔥 FIX ARCORE + SceneView native lib conflict
