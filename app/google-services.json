@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1000844388822",
+    "project_id": "lakbayaral1",
+    "storage_bucket": "lakbayaral1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1000844388822:android:4a2fc2e8647e890e641c77",
+        "android_client_info": {
+          "package_name": "com.example.lakbayaral"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUR8tlep9-JbiCnskdB1sGDCLlGvrz8Wk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
