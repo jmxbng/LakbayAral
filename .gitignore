@@ -17,6 +17,13 @@ local.properties
 
 # Logs
 *.log
+build-error.txt
+kapt-*.txt
 
 # Temporary files
 *.tmp
+
+# Node / Python tooling (reinstall with npm install)
+tools/node_modules/
+tools/__pycache__/
+**/__pycache__/

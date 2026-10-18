@@ -1,0 +1,102 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owns(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function sameProfileOwner(uid) {
+      return request.resource.data.uid == uid
+        && resource.data.uid == uid
+        && request.resource.data.email == resource.data.email;
+    }
+
+    function onlyMutableProfileFields() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'username', 'totalScore', 'pvpPoints', 'quizAccuracy',
+        'onlineWins', 'onlineMatches', 'updatedAt', 'progressUpdatedAt'
+      ]);
+    }
+
+    // Private profile and game progress. The document id is the Firebase Auth
+    // UID; the duplicate uid field is checked to prevent an inconsistent
+    // profile document from being created or modified.
+    match /online_users/{uid} {
+      allow get: if owns(uid);
+      allow list: if false;
+      allow create: if owns(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        // New profiles have only the configured starting municipality in the
+        // legacy/bootstrap summary. Subsequent unlock state lives below.
+        && request.resource.data.municipalitiesUnlocked == 1
+        && request.resource.data.unlockedMunicipalityIds.size() == 1
+        && request.resource.data.unlockedMunicipalityIds[0] == 'lubao';
+      allow update: if owns(uid)
+        && sameProfileOwner(uid)
+        && onlyMutableProfileFields();
+      allow delete: if owns(uid);
+
+      // Firestore rules do not inherit from a parent document. These records
+      // are intentionally monotonic: a client may never turn an unlock or a
+      // passed quiz back into a locked/failed record. The Android repository
+      // validates the centrally configured sequence before writing them.
+      match /municipality_progress/{municipalityId} {
+        allow read: if owns(uid);
+        allow create: if owns(uid)
+          && municipalityId == request.resource.data.municipalityId
+          && request.resource.data.isUnlocked == true;
+        allow update: if owns(uid)
+          && municipalityId == request.resource.data.municipalityId
+          && request.resource.data.isUnlocked == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'isUnlocked', 'localUpdatedAt', 'updatedAt'
+          ]);
+        allow delete: if false;
+      }
+
+      match /quiz_results/{municipalityId} {
+        allow read: if owns(uid);
+        allow create: if owns(uid)
+          && municipalityId == request.resource.data.municipalityId
+          && request.resource.data.passed == true;
+        allow update: if owns(uid)
+          && municipalityId == request.resource.data.municipalityId
+          && resource.data.passed == true
+          && request.resource.data.passed == true
+          && request.resource.data.score >= resource.data.score
+          && request.resource.data.total >= resource.data.total
+          && request.resource.data.percentage >= resource.data.percentage;
+        allow delete: if false;
+      }
+
+      match /ar_progress/{progressId} {
+        allow read: if owns(uid);
+        allow create: if owns(uid)
+          && progressId == request.resource.data.municipalityId + '__' + request.resource.data.mode;
+        allow update: if owns(uid)
+          && progressId == request.resource.data.municipalityId + '__' + request.resource.data.mode
+          && request.resource.data.placedCount >= resource.data.placedCount
+          && request.resource.data.totalCount >= resource.data.totalCount
+          && (!resource.data.completed || request.resource.data.completed == true);
+        allow delete: if false;
+      }
+    }
+
+    // Leaderboard entries are intentionally public, while each signed-in user
+    // can create or change only the entry at their own UID path.
+    match /online_leaderboard/{uid} {
+      allow read: if true;
+      allow create: if owns(uid) && request.resource.data.uid == uid;
+      allow update: if owns(uid)
+        && resource.data.uid == uid
+        && request.resource.data.uid == uid;
+      allow delete: if owns(uid);
+    }
+  }
+}

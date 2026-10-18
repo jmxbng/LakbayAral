@@ -45,6 +45,12 @@ android {
         compose = true
     }
 
+    sourceSets {
+        getByName("main") {
+            java.srcDir("kotlin")
+        }
+    }
+
     androidResources {
         noCompress += listOf("glb")
     }
@@ -106,6 +112,8 @@ dependencies {
 
     // Gson
     implementation(libs.gson)
+
+    testImplementation(libs.junit)
 
     debugImplementation(libs.androidx.ui.tooling)
 }
